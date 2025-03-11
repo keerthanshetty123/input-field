@@ -22,7 +22,7 @@ const NumberForm: React.FC = () => {
   useEffect(() => {
     const handlePopState = () => {
       setOpen(true);
-      window.history.pushState(null, "", window.location.pathname); 
+      window.history.pushState(null, "", window.location.pathname);
     };
 
     window.history.pushState(null, "", window.location.pathname);
@@ -47,10 +47,10 @@ const NumberForm: React.FC = () => {
   };
 
   const handleSave = () => {
-    alert(`Value Saved: ${value}`);
-    if(open)
-    {
-    handleClose();
+    value == "" ? alert(`No value to Save`) : alert(`Value Saved: ${value}`);
+
+    if (open) {
+      handleClose();
     }
   };
 
@@ -92,13 +92,13 @@ const NumberForm: React.FC = () => {
         >
           <Box sx={style} display="flex" justifyContent="space-between">
             <Typography id="modal-modal-title" variant="h6" component="h2">
-            Save the Changes
+              save the Changes?
             </Typography>
-            <Button variant="contained" color="primary" onClick={handleSave} >
+            <Button variant="contained" color="primary" onClick={handleSave}>
               Save
             </Button>
             <Button variant="contained" color="secondary" onClick={handleClose}>
-             Cancel
+              Cancel
             </Button>
           </Box>
         </Modal>
