@@ -1,110 +1,77 @@
-import React, { useState, useEffect } from "react";
-import { TextField, Button, Container, Box } from "@mui/material";
-import Typography from "@mui/material/Typography";
-import Modal from "@mui/material/Modal";
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 400,
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-};
-const NumberForm: React.FC = () => {
-  const [value, setValue] = useState("");
-  const [error, setError] = useState("");
-  const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { TextField, Button, Container, Typography, Box } from "@mui/material";
+
+interface FormData {
+  name: string;
+  address: string;
+  phone: string;
+}
+
+export default function FormComponent() {
+  const [formData, setFormData] = useState<FormData>({ name: "", address: "", phone: "" });
+  const [isSaved, setIsSaved] = useState<boolean>(true);
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const handlePopState = () => {
-      setOpen(true);
-      window.history.pushState(null, "", window.location.pathname);
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!isSaved) {
+        event.preventDefault();
+        event.returnValue = "You have unsaved changes. Are you sure you want to leave?";
+      }
     };
 
-    window.history.pushState(null, "", window.location.pathname);
-    window.addEventListener("popstate", handlePopState);
+    const handleBackButton = () => {
+      if (!isSaved) {
+        const confirmLeave = window.confirm("You have unsaved changes. Do you want to save before leaving?");
+        if (!confirmLeave) {
+          navigate(1); // Stay on the same page
+        }
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handleBackButton);
 
     return () => {
-      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handleBackButton);
     };
-  }, []);
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = event.target.value;
-    if (/^\d*(\.\d{0,2})?$/.test(newValue) || newValue === "") {
-      setValue(newValue);
-      setError("");
-    } else {
-      setError("Enter a valid number with up to 2 decimal places");
-    }
-  };
+  }, [isSaved, navigate]);
 
-  const handleBack = () => {
-    handleOpen();
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setIsSaved(false);
   };
 
   const handleSave = () => {
-    value == "" ? alert(`No value to Save`) : alert(`Value Saved: ${value}`);
-
-    if (open) {
-      handleClose();
-    }
+    setIsSaved(true);
+    alert("Data saved successfully!");
   };
 
-  const handleNext = () => {
-    alert("Next button clicked");
+  const handleBack = () => {
+    if (!isSaved) {
+      const confirmLeave = window.confirm("You have unsaved changes. Do you want to save before leaving?");
+      if (!confirmLeave) return;
+    }
+    navigate(-1);
   };
 
   return (
-    <div>
-      <Container maxWidth="sm">
-        <Box display="flex" flexDirection="column" gap={2} mt={5}>
-          <TextField
-            label="Enter Number"
-            variant="outlined"
-            value={value}
-            onChange={handleChange}
-            error={!!error}
-            helperText={error}
-            fullWidth
-          />
-          <Box display="flex" justifyContent="space-between">
-            <Button variant="outlined" onClick={handleBack}>
-              Back
-            </Button>
-            <Button variant="contained" color="primary" onClick={handleSave}>
-              Save
-            </Button>
-            <Button variant="contained" color="secondary" onClick={handleNext}>
-              Next
-            </Button>
-          </Box>
+    <Container maxWidth="sm">
+      <Box sx={{ p: 4, boxShadow: 3, borderRadius: 2, bgcolor: "background.paper" }}>
+        <Typography variant="h5" gutterBottom>
+          User Form
+        </Typography>
+        <TextField fullWidth margin="normal" label="Name" name="name" value={formData.name} onChange={handleChange} />
+        <TextField fullWidth margin="normal" label="Address" name="address" value={formData.address} onChange={handleChange} />
+        <TextField fullWidth margin="normal" label="Phone Number" name="phone" value={formData.phone} onChange={handleChange} />
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+          <Button variant="contained" color="secondary" onClick={handleBack}>Back</Button>
+          <Button variant="contained" color="success" onClick={handleSave}>Save</Button>
+          <Button variant="contained" color="primary">Next</Button>
         </Box>
-      </Container>
-      <div>
-        <Modal
-          open={open}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <Box sx={style} display="flex" justifyContent="space-between">
-            <Typography id="modal-modal-title" variant="h6" component="h2">
-              save the Changes?
-            </Typography>
-            <Button variant="contained" color="primary" onClick={handleSave}>
-              Save
-            </Button>
-            <Button variant="contained" color="secondary" onClick={handleClose}>
-              Cancel
-            </Button>
-          </Box>
-        </Modal>
-      </div>
-    </div>
+      </Box>
+    </Container>
   );
-};
-
-export default NumberForm;
+}
